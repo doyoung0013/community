@@ -8,17 +8,12 @@
 
 SchemaGuard는 Spring Boot 기반 백엔드 시스템에서 DB 스키마 변경으로 인해 발생할 수 있는 런타임 오류 지점을 사전에 탐지하기 위한 정적 분석 도구입니다.
 
+SchemaGuard는 코드에서 사용되는 엔터티, JPQL, Native Query를 분석하여
+스키마 변경 시 영향을 받는 지점을 식별하고 경고를 생성합니다.
+
 실제 서비스에서는 DB 스키마 변경이 발생하더라도 컴파일 단계에서는 문제가 발생하지 않고, 실행 시점에서 API가 깨지는 문제가 자주 발생합니다.
 
 이 프로젝트는 이러한 문제를 해결하기 위해 코드와 DB 간의 의존 관계를 분석하고, 스키마 변경에 따른 영향 범위를 사전에 탐지하는 것을 목표로 합니다.
-
----
-
-## 📦 Package 구조
-
-```
-com.schemaguard.community
-```
 
 ---
 
@@ -45,14 +40,155 @@ com.schemaguard.community
 
 ---
 
-## 🧩 ERD 개요
+## 🧾 엔터티 정의
 
+### 1. User
+
+| 속성명 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | 사용자 식별자 |
+| email | VARCHAR | UNIQUE, NOT NULL | 사용자 이메일 |
+| nickname | VARCHAR | NOT NULL | 사용자 닉네임 |
+| status | VARCHAR | NOT NULL | 사용자 상태 |
+| created_at | DATETIME | NOT NULL | 생성 시각 |
+
+---
+
+### 2. Category
+
+| 속성명 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | 카테고리 식별자 |
+| name | VARCHAR | UNIQUE, NOT NULL | 카테고리명 |
+| description | VARCHAR | NULL | 카테고리 설명 |
+| created_at | DATETIME | NOT NULL | 생성 시각 |
+
+---
+
+### 3. Post
+
+| 속성명 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | 게시글 식별자 |
+| title | VARCHAR | NOT NULL | 게시글 제목 |
+| content | TEXT | NOT NULL | 게시글 내용 |
+| author_id | BIGINT | FK, NOT NULL | 작성자 ID |
+| category_id | BIGINT | FK, NOT NULL | 카테고리 ID |
+| created_at | DATETIME | NOT NULL | 생성 시각 |
+| updated_at | DATETIME | NULL | 수정 시각 |
+
+---
+
+### 4. Comment
+
+| 속성명 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | 댓글 식별자 |
+| content | VARCHAR | NOT NULL | 댓글 내용 |
+| post_id | BIGINT | FK, NOT NULL | 게시글 ID |
+| author_id | BIGINT | FK, NOT NULL | 작성자 ID |
+| created_at | DATETIME | NOT NULL | 생성 시각 |
+
+---
+
+### 5. PostLike
+
+| 속성명 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | 좋아요 식별자 |
+| post_id | BIGINT | FK, NOT NULL | 게시글 ID |
+| user_id | BIGINT | FK, NOT NULL | 사용자 ID |
+| created_at | DATETIME | NOT NULL | 생성 시각 |
+
+---
+
+## 프로젝트 구조
 ```
-User
- └── Post
-      ├── Comment
-      ├── PostLike
-      └── Category
+schemaguard-community/
+├── README.md
+├── build.gradle
+├── settings.gradle
+└── src/
+    └── main/
+        ├── java/com/schemaguard/community/
+        │   ├── SchemaGuardApplication.java
+        │   │
+        │   ├── user/
+        │   │   ├── entity/
+        │   │   │   └── User.java
+        │   │   ├── repository/
+        │   │   │   └── UserRepository.java
+        │   │   ├── service/
+        │   │   │   └── UserService.java
+        │   │   ├── controller/
+        │   │   │   └── UserController.java
+        │   │   └── dto/
+        │   │       ├── UserRequest.java
+        │   │       └── UserResponse.java
+        │   │
+        │   ├── post/
+        │   │   ├── entity/
+        │   │   │   └── Post.java
+        │   │   ├── repository/
+        │   │   │   └── PostRepository.java
+        │   │   ├── service/
+        │   │   │   └── PostService.java
+        │   │   ├── controller/
+        │   │   │   └── PostController.java
+        │   │   └── dto/
+        │   │       ├── PostRequest.java
+        │   │       ├── PostResponse.java
+        │   │       └── PostSummaryResponse.java
+        │   │
+        │   ├── comment/
+        │   │   ├── entity/
+        │   │   │   └── Comment.java
+        │   │   ├── repository/
+        │   │   │   └── CommentRepository.java
+        │   │   ├── service/
+        │   │   │   └── CommentService.java
+        │   │   ├── controller/
+        │   │   │   └── CommentController.java
+        │   │   └── dto/
+        │   │       ├── CommentRequest.java
+        │   │       └── CommentResponse.java
+        │   │
+        │   ├── postlike/
+        │   │   ├── entity/
+        │   │   │   └── PostLike.java
+        │   │   ├── repository/
+        │   │   │   └── PostLikeRepository.java
+        │   │   ├── service/
+        │   │   │   └── PostLikeService.java
+        │   │   ├── controller/
+        │   │   │   └── PostLikeController.java
+        │   │   └── dto/
+        │   │       └── PostLikeResponse.java
+        │   │
+        │   └── category/
+        │       ├── entity/
+        │       │   └── Category.java
+        │       ├── repository/
+        │       │   └── CategoryRepository.java
+        │       ├── service/
+        │       │   └── CategoryService.java
+        │       ├── controller/
+        │       │   └── CategoryController.java
+        │       └── dto/
+        │           ├── CategoryRequest.java
+        │           └── CategoryResponse.java
+        │
+        └── resources/
+            ├── application.yml
+            └── static/
+                ├── index.html
+                ├── detail.html
+                ├── write.html
+                ├── edit.html
+                ├── css/
+                │   └── style.css
+                └── js/
+                    └── main.js
 ```
 
 ---
