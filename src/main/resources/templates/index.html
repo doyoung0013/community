@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchemaGuard Community</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="site-header">
+    <div class="container header-inner">
+        <a th:href="@{/}" class="logo">🛡️ SchemaGuard Community</a>
+        <nav class="nav">
+            <a th:href="@{/}">게시글 목록</a>
+            <a th:href="@{/posts/write}" class="btn btn-primary">글쓰기</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container page">
+    <section class="hero">
+        <h1>게시판 실험용 서비스</h1>
+        <p>
+            Spring Boot + Thymeleaf 기반 커뮤니티 화면입니다.
+            이후 User / Post / Comment / PostLike / Category 백엔드와 연결되는 구조입니다.
+        </p>
+    </section>
+
+    <section class="board-toolbar card">
+        <form class="toolbar-form" th:action="@{/}" method="get">
+            <div class="toolbar-left">
+                <label for="categoryId">카테고리</label>
+                <select id="categoryId" name="categoryId">
+                    <option value="">전체</option>
+                    <option th:each="category : ${categories}"
+                            th:value="${category.id}"
+                            th:text="${category.name}"
+                            th:selected="${selectedCategoryId != null and selectedCategoryId == category.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="toolbar-right">
+                <input type="text"
+                       name="keyword"
+                       th:value="${keyword}"
+                       placeholder="제목으로 검색">
+                <button type="submit" class="btn btn-secondary">검색</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="board-header board-grid">
+            <span>ID</span>
+            <span>카테고리</span>
+            <span>제목</span>
+            <span>작성자</span>
+            <span>좋아요</span>
+            <span>작성일</span>
+        </div>
+
+        <div class="board-list" th:if="${!#lists.isEmpty(posts)}">
+            <div class="board-item board-grid" th:each="post : ${posts}">
+                <div th:text="${post.id}">1</div>
+                <div>
+                    <span class="badge" th:text="${post.category.name}">자유</span>
+                </div>
+                <div>
+                    <a class="board-title-link"
+                       th:href="@{/posts/{id}(id=${post.id})}"
+                       th:text="${post.title}">
+                        게시글 제목
+                    </a>
+                </div>
+                <div th:text="${post.author.nickname}">작성자</div>
+                <div th:text="|❤️ ${post.likeCount}|">❤️ 0</div>
+                <div th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2026-04-07 14:00</div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(posts)}">
+            아직 게시글이 없습니다.
+        </div>
+    </section>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

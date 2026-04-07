@@ -180,15 +180,16 @@ schemaguard-community/
         │
         └── resources/
             ├── application.yml
-            └── static/
-                ├── index.html
-                ├── detail.html
-                ├── write.html
-                ├── edit.html
-                ├── css/
-                │   └── style.css
-                └── js/
-                    └── main.js
+            ├── templates/
+			│   ├── index.html
+			│   ├── detail.html
+			│   ├── write.html
+			│   └── edit.html
+			└── static/
+			    ├── css/
+			    │   └── style.css
+			    └── js/
+			        └── main.js
 ```
 
 ---
@@ -198,7 +199,7 @@ schemaguard-community/
 * Backend: Spring Boot
 * Language: Java
 * ORM: Spring Data JPA
-* Database: MySQL / H2
+* Database: MySQL
 * Build Tool: Gradle
 
 ---
