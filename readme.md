@@ -109,87 +109,118 @@ schemaguard-community/
 ├── build.gradle
 ├── settings.gradle
 └── src/
-    └── main/
-        ├── java/com/schemaguard/community/
-        │   ├── SchemaGuardApplication.java
-        │   │
-        │   ├── user/
-        │   │   ├── entity/
-        │   │   │   └── User.java
-        │   │   ├── repository/
-        │   │   │   └── UserRepository.java
-        │   │   ├── service/
-        │   │   │   └── UserService.java
-        │   │   ├── controller/
-        │   │   │   └── UserController.java
-        │   │   └── dto/
-        │   │       ├── UserRequest.java
-        │   │       └── UserResponse.java
-        │   │
-        │   ├── post/
-        │   │   ├── entity/
-        │   │   │   └── Post.java
-        │   │   ├── repository/
-        │   │   │   └── PostRepository.java
-        │   │   ├── service/
-        │   │   │   └── PostService.java
-        │   │   ├── controller/
-        │   │   │   └── PostController.java
-        │   │   └── dto/
-        │   │       ├── PostRequest.java
-        │   │       ├── PostResponse.java
-        │   │       └── PostSummaryResponse.java
-        │   │
-        │   ├── comment/
-        │   │   ├── entity/
-        │   │   │   └── Comment.java
-        │   │   ├── repository/
-        │   │   │   └── CommentRepository.java
-        │   │   ├── service/
-        │   │   │   └── CommentService.java
-        │   │   ├── controller/
-        │   │   │   └── CommentController.java
-        │   │   └── dto/
-        │   │       ├── CommentRequest.java
-        │   │       └── CommentResponse.java
-        │   │
-        │   ├── postlike/
-        │   │   ├── entity/
-        │   │   │   └── PostLike.java
-        │   │   ├── repository/
-        │   │   │   └── PostLikeRepository.java
-        │   │   ├── service/
-        │   │   │   └── PostLikeService.java
-        │   │   ├── controller/
-        │   │   │   └── PostLikeController.java
-        │   │   └── dto/
-        │   │       └── PostLikeResponse.java
-        │   │
-        │   └── category/
-        │       ├── entity/
-        │       │   └── Category.java
-        │       ├── repository/
-        │       │   └── CategoryRepository.java
-        │       ├── service/
-        │       │   └── CategoryService.java
-        │       ├── controller/
-        │       │   └── CategoryController.java
-        │       └── dto/
-        │           ├── CategoryRequest.java
-        │           └── CategoryResponse.java
-        │
-        └── resources/
-            ├── application.yml
-            ├── templates/
-			│   ├── index.html
-			│   ├── detail.html
-			│   ├── write.html
-			│   └── edit.html
-			└── static/
-			    ├── css/
-			    │   └── style.css
-			    └── js/
-			        └── main.js
+    ├── main/
+    │   ├── java/com/schemaguard/community/
+    │   │   ├── SchemaGuardApplication.java
+    │   │   │
+    │   │   ├── config/
+    │   │   │   └── SecurityConfig.java
+    │   │   │
+    │   │   ├── home/
+    │   │   │   └── controller/
+    │   │   │       └── HomeController.java
+    │   │   │
+    │   │   ├── auth/
+    │   │   │   ├── controller/
+    │   │   │   │   └── AuthController.java
+    │   │   │   └── dto/
+    │   │   │       ├── SignUpRequest.java
+    │   │   │       └── LoginRequest.java
+    │   │   │
+    │   │   ├── user/
+    │   │   │   ├── controller/
+    │   │   │   │   └── UserController.java
+    │   │   │   ├── dto/
+    │   │   │   │   └── UserResponse.java
+    │   │   │   ├── entity/
+    │   │   │   │   └── User.java
+    │   │   │   ├── repository/
+    │   │   │   │   └── UserRepository.java
+    │   │   │   └── service/
+    │   │   │       ├── UserService.java
+    │   │   │       └── CustomUserDetailsService.java
+    │   │   │
+    │   │   ├── category/
+    │   │   │   ├── controller/
+    │   │   │   │   └── CategoryController.java
+    │   │   │   ├── dto/
+    │   │   │   │   ├── CategoryRequest.java
+    │   │   │   │   └── CategoryResponse.java
+    │   │   │   ├── entity/
+    │   │   │   │   └── Category.java
+    │   │   │   ├── repository/
+    │   │   │   │   └── CategoryRepository.java
+    │   │   │   └── service/
+    │   │   │       └── CategoryService.java
+    │   │   │
+    │   │   ├── post/
+    │   │   │   ├── controller/
+    │   │   │   │   └── PostController.java
+    │   │   │   ├── dto/
+    │   │   │   │   ├── PostCreateRequest.java
+    │   │   │   │   ├── PostUpdateRequest.java
+    │   │   │   │   ├── PostResponse.java
+    │   │   │   │   └── PostSummaryResponse.java
+    │   │   │   ├── entity/
+    │   │   │   │   └── Post.java
+    │   │   │   ├── repository/
+    │   │   │   │   └── PostRepository.java
+    │   │   │   └── service/
+    │   │   │       └── PostService.java
+    │   │   │
+    │   │   ├── comment/
+    │   │   │   ├── controller/
+    │   │   │   │   └── CommentController.java
+    │   │   │   ├── dto/
+    │   │   │   │   ├── CommentCreateRequest.java
+    │   │   │   │   └── CommentResponse.java
+    │   │   │   ├── entity/
+    │   │   │   │   └── Comment.java
+    │   │   │   ├── repository/
+    │   │   │   │   └── CommentRepository.java
+    │   │   │   └── service/
+    │   │   │       └── CommentService.java
+    │   │   │
+    │   │   ├── postlike/
+    │   │   │   ├── controller/
+    │   │   │   │   └── PostLikeController.java
+    │   │   │   ├── dto/
+    │   │   │   │   └── PostLikeResponse.java
+    │   │   │   ├── entity/
+    │   │   │   │   └── PostLike.java
+    │   │   │   ├── repository/
+    │   │   │   │   └── PostLikeRepository.java
+    │   │   │   └── service/
+    │   │   │       └── PostLikeService.java
+    │   │   │
+    │   │   └── common/
+    │   │       ├── exception/
+    │   │       │   ├── BusinessException.java
+    │   │       │   ├── ErrorCode.java
+    │   │       │   └── GlobalExceptionHandler.java
+    │   │       └── util/
+    │   │           └── SecurityUtils.java
+    │   │
+    │   └── resources/
+    │       ├── application.yml
+    │       ├── templates/
+    │       │   ├── index.html
+    │       │   ├── detail.html
+    │       │   ├── write.html
+    │       │   ├── edit.html
+    │       │   ├── login.html
+    │       │   ├── signup.html
+    │       │   └── fragments/
+    │       │       ├── header.html
+    │       │       └── footer.html
+    │       └── static/
+    │           ├── css/
+    │           │   └── style.css
+    │           └── js/
+    │               └── main.js
+    │
+    └── test/
+        └── java/com/schemaguard/community/
 ```
 
 ---
