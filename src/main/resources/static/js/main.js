@@ -4,3 +4,10 @@ document.addEventListener("DOMContentLoaded", function () {
         autoFocusTarget.focus();
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const firstInput = document.querySelector("input");
+    if (firstInput) {
+        firstInput.focus();
+    }
+});
