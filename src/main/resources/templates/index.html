@@ -10,8 +10,9 @@
 <header class="site-header">
     <div class="container header-inner">
         <a th:href="@{/}" class="logo">🛡️ SchemaGuard Community</a>
+
         <nav class="nav" th:if="${isAuthenticated}">
-            <span th:text="|안녕하세요, ${loginUser.nickname}님|">안녕하세요</span>
+            <a th:href="@{/posts/write}" class="btn btn-primary">글쓰기</a>
             <a th:href="@{/me}">내 정보</a>
             <form th:action="@{/logout}" method="post" class="inline-form">
                 <button type="submit" class="btn btn-secondary">로그아웃</button>
@@ -26,10 +27,60 @@
 </header>
 
 <main class="container page">
+    <section class="hero">
+        <h1>게시글 목록</h1>
+        <p>카테고리와 제목 검색으로 게시글을 조회할 수 있습니다.</p>
+    </section>
+
+    <section class="board-toolbar card">
+        <form class="toolbar-form" th:action="@{/}" method="get">
+            <div class="toolbar-left">
+                <label for="categoryId">카테고리</label>
+                <select id="categoryId" name="categoryId">
+                    <option value="">전체</option>
+                    <option th:each="category : ${categories}"
+                            th:value="${category.id}"
+                            th:text="${category.name}"
+                            th:selected="${selectedCategoryId != null and selectedCategoryId == category.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="toolbar-right">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="제목으로 검색">
+                <button type="submit" class="btn btn-secondary">검색</button>
+            </div>
+        </form>
+    </section>
+
     <section class="card">
-        <h1>SchemaGuard Community</h1>
-        <p>Spring Security 기반 로그인/회원가입 1차 구성이 완료된 상태입니다.</p>
-        <p>다음 단계에서 Post / Category / Comment / PostLike를 연결하면 됩니다.</p>
+        <div class="board-header board-grid">
+            <span>ID</span>
+            <span>카테고리</span>
+            <span>제목</span>
+            <span>작성자</span>
+            <span>좋아요</span>
+            <span>작성일</span>
+        </div>
+
+        <div class="board-list" th:if="${!#lists.isEmpty(posts)}">
+            <div class="board-item board-grid" th:each="post : ${posts}">
+                <div th:text="${post.id}">1</div>
+                <div><span class="badge" th:text="${post.categoryName}">자유</span></div>
+                <div>
+                    <a class="board-title-link"
+                       th:href="@{/posts/{id}(id=${post.id})}"
+                       th:text="${post.title}">게시글 제목</a>
+                </div>
+                <div th:text="${post.authorNickname}">작성자</div>
+                <div th:text="|❤️ ${post.likeCount}|">❤️ 0</div>
+                <div th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2026-04-09 21:00</div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(posts)}">
+            아직 게시글이 없습니다.
+        </div>
     </section>
 </main>
 <script th:src="@{/js/main.js}"></script>

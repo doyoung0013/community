@@ -383,6 +383,146 @@ select {
     color: var(--danger);
 }
 
+.hero {
+    margin-bottom: 24px;
+}
+
+.hero h1 {
+    margin: 0 0 10px;
+    font-size: 2rem;
+}
+
+.hero p {
+    margin: 0;
+    color: var(--subtext);
+    line-height: 1.6;
+}
+
+.board-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.toolbar-form {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: end;
+    width: 100%;
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toolbar-right input,
+.toolbar-left select,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: white;
+}
+
+.toolbar-right input {
+    width: 240px;
+}
+
+.board-grid {
+    display: grid;
+    grid-template-columns: 70px 140px 1fr 140px 100px 160px;
+    gap: 14px;
+    align-items: center;
+}
+
+.board-header {
+    font-weight: 700;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--subtext);
+}
+
+.board-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.board-item:last-child {
+    border-bottom: none;
+}
+
+.board-title-link {
+    font-weight: 600;
+}
+
+.board-title-link:hover {
+    color: var(--primary);
+}
+
+.badge {
+    display: inline-block;
+    background: #eff6ff;
+    color: var(--primary);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.empty-state {
+    padding: 28px 0 8px;
+    text-align: center;
+    color: var(--subtext);
+}
+
+.post-detail h1 {
+    margin: 12px 0 14px;
+}
+
+.detail-top,
+.detail-bottom,
+.meta,
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.meta {
+    justify-content: flex-start;
+    color: var(--subtext);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.detail-content {
+    min-height: 220px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fafafa;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+.post-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
 @media (max-width: 900px) {
     .board-grid {
         grid-template-columns: 60px 110px 1fr 100px 80px 120px;

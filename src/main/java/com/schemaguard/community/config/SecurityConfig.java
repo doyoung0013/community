@@ -20,11 +20,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/posts/**", "/comments/**", "/categories/**", "/likes/**").authenticated()
-                        .anyRequest().permitAll()
-                )
+		        .authorizeHttpRequests(auth -> auth
+		        	    .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**").permitAll()
+		        	    .requestMatchers("/posts/write", "/me").authenticated()
+		        	    .anyRequest().permitAll()
+		        	)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")

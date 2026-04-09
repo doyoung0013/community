@@ -20,42 +20,43 @@
     <section class="card form-card">
         <h1>게시글 수정</h1>
 
-        <form th:action="@{/posts/{id}/edit(id=${post.id})}" method="post" class="post-form">
+        <form th:action="@{/posts/{id}/edit(id=${postId})}" th:object="${postUpdateRequest}" method="post" class="post-form">
             <div class="form-group">
-                <label for="authorNickname">작성자</label>
-                <input type="text" id="authorNickname" th:value="${post.author.nickname}" readonly>
+                <label>작성자</label>
+                <input type="text" th:value="${post.authorNickname}" readonly>
             </div>
 
             <div class="form-group">
                 <label for="categoryId">카테고리</label>
-                <select id="categoryId" name="categoryId" required>
+                <select id="categoryId" th:field="*{categoryId}">
                     <option value="">선택하세요</option>
                     <option th:each="category : ${categories}"
                             th:value="${category.id}"
-                            th:text="${category.name}"
-                            th:selected="${post.category.id == category.id}">
+                            th:text="${category.name}">
                     </option>
                 </select>
+                <p class="field-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></p>
             </div>
 
             <div class="form-group">
                 <label for="title">제목</label>
-                <input type="text" id="title" name="title" th:value="${post.title}" required>
+                <input type="text" id="title" th:field="*{title}">
+                <p class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
             </div>
 
             <div class="form-group">
                 <label for="content">내용</label>
-                <textarea id="content" name="content" rows="12" required th:text="${post.content}"></textarea>
+                <textarea id="content" th:field="*{content}" rows="12"></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></p>
             </div>
 
             <div class="form-actions">
-                <a th:href="@{/posts/{id}(id=${post.id})}" class="btn btn-secondary">취소</a>
+                <a th:href="@{/posts/{id}(id=${postId})}" class="btn btn-secondary">취소</a>
                 <button type="submit" class="btn btn-primary">수정 완료</button>
             </div>
         </form>
     </section>
 </main>
-
 <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ public class HomeController {
 
     private final UserService userService;
 
+    /*
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("isAuthenticated", SecurityUtils.isAuthenticated());
@@ -26,4 +27,5 @@ public class HomeController {
 
         return "index";
     }
+    */
 }
