@@ -17,12 +17,13 @@ public class PostResponse {
     private Long authorId;
     private String categoryName;
     private Long categoryId;
-    private Integer likeCount;
+    private long likeCount;
+    private boolean likedByCurrentUser;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean owner;
 
-    public static PostResponse from(Post post, Long loginUserId) {
+    public static PostResponse from(Post post, Long loginUserId, long likeCount, boolean likedByCurrentUser) {
         boolean isOwner = loginUserId != null && loginUserId.equals(post.getAuthor().getId());
 
         return PostResponse.builder()
@@ -33,7 +34,8 @@ public class PostResponse {
                 .authorId(post.getAuthor().getId())
                 .categoryName(post.getCategory().getName())
                 .categoryId(post.getCategory().getId())
-                .likeCount(post.getLikeCount())
+                .likeCount(likeCount)
+                .likedByCurrentUser(likedByCurrentUser)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .owner(isOwner)

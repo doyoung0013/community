@@ -42,10 +42,55 @@
         <article class="detail-content" th:text="${post.content}">게시글 내용</article>
 
         <div class="detail-bottom">
-            <form th:if="${isAuthenticated}" th:action="@{/posts/{id}/like(id=${post.id})}" method="post" class="inline-form">
-                <button type="submit" class="btn btn-primary">좋아요 ❤️</button>
+            <form th:if="${isAuthenticated}" th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" class="inline-form">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${post.likedByCurrentUser ? '좋아요 취소 💔' : '좋아요 ❤️'}">
+                    좋아요 ❤️
+                </button>
             </form>
             <a th:href="@{/}" class="btn btn-secondary">목록으로</a>
+        </div>
+    </section>
+
+    <section class="card comment-section">
+        <h2>댓글</h2>
+
+        <form th:if="${isAuthenticated}"
+              th:action="@{/posts/{postId}/comments(postId=${post.id})}"
+              th:object="${commentCreateRequest}"
+              method="post"
+              class="comment-form">
+            <div class="form-group">
+                <textarea th:field="*{content}" rows="4" placeholder="댓글을 입력하세요"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">댓글 등록</button>
+        </form>
+
+        <div th:unless="${isAuthenticated}" class="empty-state">
+            댓글 작성은 로그인 후 가능합니다.
+        </div>
+
+        <div class="comment-list" th:if="${!#lists.isEmpty(comments)}">
+            <div class="comment-item" th:each="comment : ${comments}">
+                <div class="comment-meta">
+                    <strong th:text="${comment.authorNickname}">작성자</strong>
+                    <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2026-04-09 22:00</span>
+                </div>
+
+                <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
+
+                <div class="comment-actions" th:if="${comment.owner}">
+                    <form th:action="@{/posts/{postId}/comments/{commentId}/delete(postId=${post.id}, commentId=${comment.id})}"
+                          method="post"
+                          class="inline-form">
+                        <button type="submit" class="btn btn-danger">댓글 삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(comments)}">
+            아직 댓글이 없습니다.
         </div>
     </section>
 </main>

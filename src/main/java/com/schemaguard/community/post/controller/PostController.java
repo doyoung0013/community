@@ -1,6 +1,8 @@
 package com.schemaguard.community.post.controller;
 
 import com.schemaguard.community.category.service.CategoryService;
+import com.schemaguard.community.comment.dto.CommentCreateRequest;
+import com.schemaguard.community.comment.service.CommentService;
 import com.schemaguard.community.common.util.SecurityUtils;
 import com.schemaguard.community.post.dto.PostCreateRequest;
 import com.schemaguard.community.post.dto.PostResponse;
@@ -19,6 +21,7 @@ public class PostController {
 
     private final PostService postService;
     private final CategoryService categoryService;
+    private final CommentService commentService;
 
     @GetMapping("/")
     public String postList(
@@ -31,11 +34,6 @@ public class PostController {
         model.addAttribute("selectedCategoryId", categoryId);
         model.addAttribute("keyword", keyword);
         model.addAttribute("isAuthenticated", SecurityUtils.isAuthenticated());
-
-        if (SecurityUtils.isAuthenticated()) {
-            model.addAttribute("loginUserEmail", SecurityUtils.getCurrentUserEmail());
-        }
-
         return "index";
     }
 
@@ -44,7 +42,10 @@ public class PostController {
         String loginUserEmail = SecurityUtils.isAuthenticated() ? SecurityUtils.getCurrentUserEmail() : null;
 
         PostResponse post = postService.getPost(id, loginUserEmail);
+
         model.addAttribute("post", post);
+        model.addAttribute("comments", commentService.getCommentsByPostId(id, loginUserEmail));
+        model.addAttribute("commentCreateRequest", new CommentCreateRequest());
         model.addAttribute("isAuthenticated", SecurityUtils.isAuthenticated());
 
         return "detail";
@@ -117,11 +118,5 @@ public class PostController {
     public String deletePost(@PathVariable("id") Long id) {
         postService.deletePost(id, SecurityUtils.getCurrentUserEmail());
         return "redirect:/";
-    }
-
-    @PostMapping("/posts/{id}/like")
-    public String likePost(@PathVariable("id") Long id) {
-        postService.increaseLikeCount(id);
-        return "redirect:/posts/" + id;
     }
 }

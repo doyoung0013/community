@@ -36,21 +36,17 @@ public class Post {
     private Category category;
 
     @Column(nullable = false)
-    private Integer likeCount;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
     @Builder
     public Post(String title, String content, User author, Category category,
-                Integer likeCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.title = title;
         this.content = content;
         this.author = author;
         this.category = category;
-        this.likeCount = likeCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -60,9 +56,5 @@ public class Post {
         this.content = content;
         this.category = category;
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public void increaseLikeCount() {
-        this.likeCount += 1;
     }
 }

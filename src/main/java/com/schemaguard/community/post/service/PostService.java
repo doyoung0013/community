@@ -8,6 +8,8 @@ import com.schemaguard.community.post.dto.PostSummaryResponse;
 import com.schemaguard.community.post.dto.PostUpdateRequest;
 import com.schemaguard.community.post.entity.Post;
 import com.schemaguard.community.post.repository.PostRepository;
+import com.schemaguard.community.postlike.service.PostLikeService;
+import com.schemaguard.community.comment.service.CommentService;
 import com.schemaguard.community.user.entity.User;
 import com.schemaguard.community.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final CommentService commentService;
+    private final PostLikeService postLikeService;
 
     public List<PostSummaryResponse> getPosts(Long categoryId, String keyword) {
         List<Post> posts;
@@ -43,7 +47,14 @@ public class PostService {
         }
 
         return posts.stream()
-                .map(PostSummaryResponse::from)
+                .map(post -> PostSummaryResponse.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .authorNickname(post.getAuthor().getNickname())
+                        .categoryName(post.getCategory().getName())
+                        .likeCount(postLikeService.getLikeCount(post.getId()))
+                        .createdAt(post.getCreatedAt())
+                        .build())
                 .toList();
     }
 
@@ -56,7 +67,10 @@ public class PostService {
             loginUserId = userService.getByEmail(loginUserEmail).getId();
         }
 
-        return PostResponse.from(post, loginUserId);
+        long likeCount = postLikeService.getLikeCount(postId);
+        boolean likedByCurrentUser = postLikeService.isLikedByCurrentUser(postId, loginUserEmail);
+
+        return PostResponse.from(post, loginUserId, likeCount, likedByCurrentUser);
     }
 
     @Transactional
@@ -69,7 +83,6 @@ public class PostService {
                 .content(request.getContent())
                 .author(author)
                 .category(category)
-                .likeCount(0)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -93,14 +106,10 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
         validateOwner(post, loginUserEmail);
-        postRepository.delete(post);
-    }
 
-    @Transactional
-    public void increaseLikeCount(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
-        post.increaseLikeCount();
+        commentService.deleteAllByPostId(postId);
+        postLikeService.deleteAllByPostId(postId);
+        postRepository.delete(post);
     }
 
     private void validateOwner(Post post, String loginUserEmail) {
