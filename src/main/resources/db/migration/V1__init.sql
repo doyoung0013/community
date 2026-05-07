@@ -29,7 +29,7 @@ CREATE TABLE posts (
     CONSTRAINT fk_posts_category
         FOREIGN KEY (category_id)
         REFERENCES categories(id)
-);
+)
 
 CREATE TABLE comments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,

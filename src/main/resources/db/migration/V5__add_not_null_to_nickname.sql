@@ -1,0 +1,1 @@
+ALTER TABLE users MODIFY nickname VARCHAR(50) NOT NULL;
