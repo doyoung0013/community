@@ -94,36 +94,125 @@ jobs:
             cd $GITHUB_WORKSPACE
           done
 
-      # 9. hasHighRisk 기반으로 병합 차단 판단
+      # 9. hasHighRisk 기반으로 병합 차단 판단 + Step Summary 출력
       - name: Check for HIGH risk
         if: steps.changed-sql.outputs.sql_changed == 'true'
         run: |
           HIGH_FOUND=false
+          SUMMARY_BODY=""
 
           for REPORT in $GITHUB_WORKSPACE/build/reports/schemaguard-*.json; do
             echo "📄 리포트 확인: $REPORT"
 
-            # JsonReporter의 summary.hasHighRisk 필드를 직접 읽음
-            HAS_HIGH=$(python3 -c "
+            SUMMARY_BODY+=$(python3 -c "
           import json, sys
+
+          with open('$REPORT') as f:
+              data = json.load(f)
+
+          summary = data.get('summary', {})
+          apis    = data.get('affectedApis', [])
+
+          high   = summary.get('high', 0)
+          medium = summary.get('medium', 0)
+          low    = summary.get('low', 0)
+          has_high = summary.get('hasHighRisk', False)
+
+          overall = '🔴 HIGH' if has_high else ('🟡 MEDIUM' if medium > 0 else '🟢 LOW')
+
+          lines = []
+          lines.append('## 🛡️ SchemaGuard Report')
+          lines.append('')
+          lines.append('### 📌 요약')
+          lines.append('')
+          lines.append('| 항목 | 값 |')
+          lines.append('|---|---|')
+          lines.append(f'| 전체 위험도 | {overall} |')
+          lines.append(f'| 🔴 HIGH     | {high}건 |')
+          lines.append(f'| 🟡 MEDIUM   | {medium}건 |')
+          lines.append(f'| 🟢 LOW      | {low}건 |')
+          lines.append(f'| 영향 API 수 | {len(apis)}개 |')
+          lines.append('')
+
+          if apis:
+              lines.append('### 🔥 영향받는 API 목록')
+              lines.append('')
+              lines.append('| # | API | 위험도 | 변경 유형 | 테이블.컬럼 |')
+              lines.append('|---|-----|--------|-----------|------------|')
+
+              for i, api in enumerate(apis, 1):
+                  risk  = api.get('riskLevel', '-')
+                  badge = '🔴' if risk == 'HIGH' else ('🟡' if risk == 'MEDIUM' else '🟢')
+                  cause = api.get('cause', {})
+                  change_type = cause.get('type', '-')
+                  col  = cause.get('column') or '-'
+                  tbl  = cause.get('table') or '-'
+                  lines.append(f'| {i} | \`{api.get(\"apiId\",\"-\")}\` | {badge} {risk} | {change_type} | {tbl}.{col} |')
+
+              lines.append('')
+              lines.append('### 🛠️ 상세 영향 경로')
+              lines.append('')
+
+              for api in apis:
+                  risk  = api.get('riskLevel', '-')
+                  badge = '🔴' if risk == 'HIGH' else ('🟡' if risk == 'MEDIUM' else '🟢')
+                  lines.append(f'<details>')
+                  lines.append(f'<summary>{badge} <strong>{api.get(\"apiId\", \"-\")}</strong> ({risk})</summary>')
+                  lines.append('')
+                  cause = api.get('cause', {})
+                  lines.append(f'**변경 원인:** {cause.get(\"type\",\"-\")} on {cause.get(\"table\",\"-\")}.{cause.get(\"column\",\"-\")}')
+                  lines.append('')
+                  lines.append('**영향 경로:**')
+                  lines.append('')
+                  lines.append('\`\`\`')
+                  for node in api.get('impactPath', []):
+                      node_type = node.get('type', '')
+                      name      = node.get('name', '')
+                      fp        = node.get('filePath', '')
+                      line      = node.get('line')
+                      loc = f'  ({fp}:{line})' if line else (f'  ({fp})' if fp else '')
+                      lines.append(f'  -> [{node_type}] {name}{loc}')
+                  lines.append('\`\`\`')
+                  lines.append('')
+                  lines.append('</details>')
+                  lines.append('')
+
+          print('\n'.join(lines))
+          ")
+
+            # hasHighRisk 체크
+            HAS_HIGH=$(python3 -c "
+          import json
           with open('$REPORT') as f:
               data = json.load(f)
           print(data.get('summary', {}).get('hasHighRisk', False))
           ")
-
-            echo "  → hasHighRisk: $HAS_HIGH"
 
             if [ "$HAS_HIGH" = "True" ]; then
               HIGH_FOUND=true
             fi
           done
 
+          # Step Summary 작성
+          echo "$SUMMARY_BODY" >> $GITHUB_STEP_SUMMARY
+
           if [ "$HIGH_FOUND" = "true" ]; then
-            echo ""
-            echo "🚨 HIGH 위험도 스키마 변경이 감지되었습니다!"
-            echo "   SchemaGuard 리포트를 확인하고 영향받는 코드를 수정 후 다시 PR을 올려주세요."
+            # 실패 배너도 Summary에 추가
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ 병합 차단됨" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> 🚨 **HIGH 위험도 스키마 변경이 감지되었습니다.**" >> $GITHUB_STEP_SUMMARY
+            echo "> 영향받는 코드를 수정한 뒤 PR을 다시 올려주세요." >> $GITHUB_STEP_SUMMARY
+
+            echo "🚨 HIGH 위험도 감지 → 병합 차단"
             exit 1
           else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "## ✅ 병합 가능" >> $GITHUB_STEP_SUMMARY
+            echo "> HIGH 위험도 없음. 안전하게 병합할 수 있습니다." >> $GITHUB_STEP_SUMMARY
+
             echo "✅ HIGH 위험도 없음. 병합 가능합니다."
           fi
 
