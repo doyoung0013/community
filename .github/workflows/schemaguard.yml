@@ -1,0 +1,137 @@
+name: SchemaGuard - Schema Change Analysis
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.sql'
+
+jobs:
+  schema-guard:
+    name: Analyze Schema Changes
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 검사 대상 프로젝트 체크아웃
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. SchemaGuard 별도 레포 클론
+      - name: Clone SchemaGuard
+        run: |
+          git clone https://github.com/doyoung0013/schemaguard.git $GITHUB_WORKSPACE/schemaguard
+
+      # 3. Java 17 세팅
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 4. Gradle 캐시
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/schemaguard/**/*.gradle*', '**/schemaguard/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 5. gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x $GITHUB_WORKSPACE/schemaguard/gradlew
+
+      # 6. PR에서 변경된 SQL 마이그레이션 파일 감지
+      - name: Detect changed SQL migration files
+        id: changed-sql
+        run: |
+          CHANGED_SQL=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep -E 'src/main/resources/db/migration/.*\.sql$' \
+            || true)
+
+          echo "변경된 SQL 파일 목록:"
+          echo "$CHANGED_SQL"
+
+          if [ -z "$CHANGED_SQL" ]; then
+            echo "sql_changed=false" >> $GITHUB_OUTPUT
+          else
+            SQL_LIST=$(echo "$CHANGED_SQL" | tr '\n' ' ' | xargs)
+            echo "sql_changed=true" >> $GITHUB_OUTPUT
+            echo "sql_files=$SQL_LIST" >> $GITHUB_OUTPUT
+          fi
+
+      # 7. 변경된 SQL 없으면 스킵
+      - name: Skip if no SQL changes
+        if: steps.changed-sql.outputs.sql_changed == 'false'
+        run: echo "✅ 마이그레이션 SQL 변경 없음. SchemaGuard 스킵."
+
+      # 8. SchemaGuard 실행
+      - name: Run SchemaGuard
+        if: steps.changed-sql.outputs.sql_changed == 'true'
+        env:
+          SCHEMAGUARD_LANG: en
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/build/reports
+
+          for SQL_FILE in ${{ steps.changed-sql.outputs.sql_files }}; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🔍 분석 중: $SQL_FILE"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            SQL_BASENAME=$(basename "$SQL_FILE" .sql)
+            REPORT_PATH="$GITHUB_WORKSPACE/build/reports/schemaguard-${SQL_BASENAME}.json"
+
+            cd $GITHUB_WORKSPACE/schemaguard
+            ./gradlew run --args="\
+              --source $GITHUB_WORKSPACE/src/main/java \
+              --migration $GITHUB_WORKSPACE/$SQL_FILE \
+              --report-path $REPORT_PATH"
+            cd $GITHUB_WORKSPACE
+          done
+
+      # 9. hasHighRisk 기반으로 병합 차단 판단
+      - name: Check for HIGH risk
+        if: steps.changed-sql.outputs.sql_changed == 'true'
+        run: |
+          HIGH_FOUND=false
+
+          for REPORT in $GITHUB_WORKSPACE/build/reports/schemaguard-*.json; do
+            echo "📄 리포트 확인: $REPORT"
+
+            # JsonReporter의 summary.hasHighRisk 필드를 직접 읽음
+            HAS_HIGH=$(python3 -c "
+          import json, sys
+          with open('$REPORT') as f:
+              data = json.load(f)
+          print(data.get('summary', {}).get('hasHighRisk', False))
+          ")
+
+            echo "  → hasHighRisk: $HAS_HIGH"
+
+            if [ "$HAS_HIGH" = "True" ]; then
+              HIGH_FOUND=true
+            fi
+          done
+
+          if [ "$HIGH_FOUND" = "true" ]; then
+            echo ""
+            echo "🚨 HIGH 위험도 스키마 변경이 감지되었습니다!"
+            echo "   SchemaGuard 리포트를 확인하고 영향받는 코드를 수정 후 다시 PR을 올려주세요."
+            exit 1
+          else
+            echo "✅ HIGH 위험도 없음. 병합 가능합니다."
+          fi
+
+      # 10. 리포트 Artifact 업로드 (성공/실패 무관하게 항상 실행)
+      - name: Upload SchemaGuard reports
+        if: always() && steps.changed-sql.outputs.sql_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: schemaguard-reports
+          path: ${{ github.workspace }}/build/reports/schemaguard-*.json
+          retention-days: 30
