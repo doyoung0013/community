@@ -40,6 +40,7 @@ public class CommentService {
         Post post = postRepository.findWithAuthorAndCategoryById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
+        
         User author = userService.getByEmail(loginUserEmail);
 
         Comment comment = Comment.builder()
